@@ -503,36 +503,21 @@ class TilerFactory(BaseTilerFactory):
 
             tilesize = scale * 256
 
-            if aoi:
-                feature = get_feature(aoi)
-                with Timer() as t:
-                    with rasterio.Env(**self.gdal_config):
-                        with self.reader(src_path, tms=tms, **reader_params) as src_dst:
-                            data = src_dst.tile(
-                                x,
-                                y,
-                                z,
-                                tilesize=tilesize,
-                                aoi=feature,
-                                tile_buffer=tile_buffer,
-                                **layer_params,
-                                **dataset_params,
-                            )
-                            dst_colormap = getattr(src_dst, "colormap", None)
-            else:
-                with Timer() as t:
-                    with rasterio.Env(**self.gdal_config):
-                        with self.reader(src_path, tms=tms, **reader_params) as src_dst:
-                            data = src_dst.tile(
-                                x,
-                                y,
-                                z,
-                                tilesize=tilesize,
-                                tile_buffer=tile_buffer,
-                                **layer_params,
-                                **dataset_params,
-                            )
-                            dst_colormap = getattr(src_dst, "colormap", None)
+            feature = get_feature(aoi) if aoi else None
+            with Timer() as t:
+                with rasterio.Env(**self.gdal_config):
+                    with self.reader(src_path, tms=tms, **reader_params) as src_dst:
+                        data = src_dst.tile(
+                            x,
+                            y,
+                            z,
+                            tilesize=tilesize,
+                            aoi=feature,
+                            tile_buffer=tile_buffer,
+                            **layer_params,
+                            **dataset_params,
+                        )
+                        dst_colormap = getattr(src_dst, "colormap", None)
             timings.append(("dataread", round(t.elapsed * 1000, 2)))
 
             if not format:
