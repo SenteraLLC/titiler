@@ -3,6 +3,7 @@
 import json
 import os
 import pathlib
+from base64 import b64encode
 from dataclasses import dataclass
 from io import BytesIO
 from typing import Dict, Type
@@ -71,6 +72,32 @@ def test_TilerFactory():
     assert "dataread;dur" in timing
     assert "postprocess;dur" in timing
     assert "format;dur" in timing
+
+    # Clipped Tiles
+    feature = {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [-59.23828124999999, 74.16408546675687],
+                [-59.83154296874999, 73.15680773175981],
+                [-58.73291015624999, 72.88087095711504],
+                [-56.62353515625, 73.06104462497655],
+                [-55.17333984375, 73.41588526207096],
+                [-55.2392578125, 74.09799577518739],
+                [-56.88720703125, 74.2895142503942],
+                [-57.23876953124999, 74.30735341486248],
+                [-59.23828124999999, 74.16408546675687],
+            ]
+        ],
+    }
+
+    to_json = json.dumps(feature)
+    json_bytes = to_json.encode("utf-8")
+    base64 = b64encode(json_bytes).decode("utf-8")
+    response = client.get(
+        f"/tiles/8/87/48?aoi={base64}&url={DATA_DIR}/cog.tif&rescale=0,1000"
+    )
+    assert response.status_code == 200
 
     response = client.get(
         f"/tiles/8/87/48?url={DATA_DIR}/cog.tif&rescale=-3.4028235e+38,3.4028235e+38"
