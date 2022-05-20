@@ -218,9 +218,7 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
                 route.dependencies.extend(dependencies)  # type: ignore
 
 
-def get_feature(
-    aoi: str = Path(..., description="Base64 encoded GeoJSON feature")
-) -> Feature:
+def get_feature(aoi: str) -> Feature:
     """Base64 encoded GeoJSON Feature."""
     return json.loads(b64decode(aoi))
 
