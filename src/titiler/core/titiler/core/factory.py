@@ -1,6 +1,8 @@
 """TiTiler Router factories."""
 
 import abc
+import json
+from base64 import b64decode
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 from urllib.parse import urlencode
@@ -214,6 +216,11 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
                 # https://github.com/tiangolo/fastapi/blob/58ab733f19846b4875c5b79bfb1f4d1cb7f4823f/fastapi/applications.py#L337-L360
                 # https://github.com/tiangolo/fastapi/blob/58ab733f19846b4875c5b79bfb1f4d1cb7f4823f/fastapi/routing.py#L677-L678
                 route.dependencies.extend(dependencies)  # type: ignore
+
+
+def get_feature(aoi: str) -> Feature:
+    """Base64 encoded GeoJSON Feature."""
+    return json.loads(b64decode(aoi))
 
 
 @dataclass
@@ -467,6 +474,7 @@ class TilerFactory(BaseTilerFactory):
             z: int = Path(..., ge=0, le=30, description="TMS tiles's zoom level"),
             x: int = Path(..., description="TMS tiles's column"),
             y: int = Path(..., description="TMS tiles's row"),
+            aoi: Union[str, None] = Query(default=None, description="Area of Interest"),
             tms: TileMatrixSet = Depends(self.tms_dependency),
             scale: int = Query(
                 1, gt=0, lt=4, description="Tile size scale. 1=256x256, 2=512x512..."
@@ -495,6 +503,7 @@ class TilerFactory(BaseTilerFactory):
 
             tilesize = scale * 256
 
+            feature = get_feature(aoi) if aoi else None
             with Timer() as t:
                 with rasterio.Env(**self.gdal_config):
                     with self.reader(src_path, tms=tms, **reader_params) as src_dst:
@@ -503,6 +512,7 @@ class TilerFactory(BaseTilerFactory):
                             y,
                             z,
                             tilesize=tilesize,
+                            aoi=feature,
                             tile_buffer=tile_buffer,
                             **layer_params,
                             **dataset_params,
