@@ -55,9 +55,6 @@ app = FastAPI(
     root_path=api_settings.root_path,
 )
 
-router = APIRouter(prefix=api_settings.path_prefix)
-app.include_router(router)
-
 if not api_settings.disable_cog:
     app.include_router(cog.router, prefix=api_settings.path_prefix+"/cog", tags=["Cloud Optimized GeoTIFF"])
 
@@ -110,6 +107,8 @@ if api_settings.lower_case_query_parameters:
     app.add_middleware(LowerCaseQueryStringMiddleware)
 
 
+router = APIRouter(prefix=api_settings.path_prefix)
+
 @router.get("/healthz", description="Health Check", tags=["Health Check"])
 def ping():
     """Health check."""
@@ -124,3 +123,5 @@ def landing(request: Request):
         context={"request": request},
         media_type="text/html",
     )
+
+app.include_router(router)
