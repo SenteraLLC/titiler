@@ -27,7 +27,7 @@ mkdir -p $(dirname ${LAMBDA_PATH})
 
 # Build Docker image and copy build assets out:
 cd ${PROJ_DIR}/deployment/aws
-docker build -f ${PROJ_DIR}/deployment/aws/lambda/Dockerfile -t ${DOCKER_TAG} .
+docker build --no-cache -f ${PROJ_DIR}/deployment/aws/lambda/Dockerfile -t ${DOCKER_TAG} .
 docker run --rm -it -v ${BUILD_DIR}:/asset-output --entrypoint /bin/bash ${DOCKER_TAG} -c 'cp -R /asset/. /asset-output/.'
 
 # Package up into .zip:

@@ -43,9 +43,10 @@ logging.getLogger("rio-tiler").setLevel(logging.ERROR)
 
 logger = logging.getLogger(__name__)
 logger.info(f"TiTiler")
-logger.info(f"Path prefix: {api_settings.path_prefix}")
 
 api_settings = ApiSettings()
+logger.debug(f"Root path: {api_settings.root_path}")
+logger.debug(f"Path prefix: {api_settings.path_prefix}")
 
 app = FastAPI(
     title=api_settings.name,
