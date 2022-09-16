@@ -22,9 +22,27 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse
 from starlette_cramjam.middleware import CompressionMiddleware
 
+LEVELS = {
+    "debug": logging.DEBUG,
+    "info": logging.INFO,
+    "warning": logging.WARNING,
+    "error": logging.ERROR,
+    "critical": logging.CRITICAL,
+}
+# Remove any AWS-injected logger handlers to fix Lambda logging to CloudWatch
+# https://stackoverflow.com/a/45624044
+base = logging.getLogger()
+if base.handlers:
+    for handler in base.handlers:
+        base.removeHandler(handler)
+logging.basicConfig(level=LEVELS.get(os.environ.get("LOGLEVEL", "info")))
 logging.getLogger("botocore.credentials").disabled = True
 logging.getLogger("botocore.utils").disabled = True
 logging.getLogger("rio-tiler").setLevel(logging.ERROR)
+
+logger = logging.getLogger(__name__)
+logger.info(f"TiTiler")
+logger.info(f"Path prefix: {api_settings.path_prefix}")
 
 api_settings = ApiSettings()
 
