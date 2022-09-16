@@ -1,6 +1,7 @@
 """titiler app."""
 
 import logging
+import os
 
 from titiler.application import __version__ as titiler_version
 from titiler.application.custom import templates
