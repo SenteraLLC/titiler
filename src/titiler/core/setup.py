@@ -12,7 +12,7 @@ inst_reqs = [
     "numpy",
     "pydantic",
     "rasterio",
-    "rio-tiler@git+ssh://git@github.com/SenteraLLC/rio-tiler.git@3.1.5",
+    "rio-tiler@https://github.com/SenteraLLC/rio-tiler/archive/3.1.5.tar.gz",
     "simplejson",
     "importlib_resources>=1.1.0;python_version<'3.9'",
     "typing_extensions;python_version<'3.8'",
