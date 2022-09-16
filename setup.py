@@ -8,9 +8,9 @@ with open("README.md") as f:
 __version__ = "0.6.0"
 
 inst_reqs = [
-    f"titiler.core=={__version__}",
-    f"titiler.mosaic=={__version__}",
-    f"titiler.application=={__version__}",
+    f"titiler.core @ file://localhost/{os.getcwd()}/src/titiler/core",
+    f"titiler.mosaic @ file://localhost/{os.getcwd()}/src/titiler/mosaic",
+    f"titiler.application @ file://localhost/{os.getcwd()}/src/titiler/application",
 ]
 
 
