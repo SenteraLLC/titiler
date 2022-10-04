@@ -42,7 +42,7 @@ logging.getLogger("botocore.utils").disabled = True
 logging.getLogger("rio-tiler").setLevel(logging.ERROR)
 
 logger = logging.getLogger(__name__)
-logger.info(f"TiTiler")
+logger.info("TiTiler")
 
 api_settings = ApiSettings()
 logger.debug(f"Root path: {api_settings.root_path}")
