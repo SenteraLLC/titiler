@@ -5,11 +5,9 @@ import warnings
 from typing import Callable, Dict, List, Optional, Type
 
 import rasterio
-
 from fastapi import params
 from fastapi.dependencies.utils import get_parameterless_sub_dependant
 from fastapi.routing import APIRoute
-
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.routing import BaseRoute, Match
@@ -34,7 +32,7 @@ def apiroute_factory(env: Optional[Dict] = None) -> Type[APIRoute]:
     """
     warnings.warn(
         "'apiroute_factory' has been deprecated and will be removed"
-        "in titiler 0.1.0. Please see `gdal_config` option in endpoint factories.",
+        "in titiler 0.1.0. Please see `environment_dependency` option in endpoint factories.",
         DeprecationWarning,
     )
 
