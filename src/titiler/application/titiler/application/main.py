@@ -1,8 +1,9 @@
 """titiler app."""
 
 import logging
+import os
 
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
 from rio_tiler.io import STACReader
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
@@ -40,14 +41,34 @@ except ImportError:
     # Try backported to PY<39 `importlib_resources`.
     from importlib_resources import files as resources_files  # type: ignore
 
+LEVELS = {
+    "debug": logging.DEBUG,
+    "info": logging.INFO,
+    "warning": logging.WARNING,
+    "error": logging.ERROR,
+    "critical": logging.CRITICAL,
+}
+# Remove any AWS-injected logger handlers to fix Lambda logging to CloudWatch
+# https://stackoverflow.com/a/45624044
+base = logging.getLogger()
+if base.handlers:
+    for handler in base.handlers:
+        base.removeHandler(handler)
+logging.basicConfig(level=LEVELS.get(os.environ.get("LOGLEVEL", "info")))
 logging.getLogger("botocore.credentials").disabled = True
 logging.getLogger("botocore.utils").disabled = True
 logging.getLogger("rio-tiler").setLevel(logging.ERROR)
+
+logger = logging.getLogger(__name__)
+logger.info("TiTiler")
 
 # TODO: mypy fails in python 3.9, we need to find a proper way to do this
 templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))  # type: ignore
 
 api_settings = ApiSettings()
+global_prefix = api_settings.path_prefix
+logger.debug(f"Root path: {api_settings.root_path}")
+logger.debug(f"Path prefix: {global_prefix}")
 
 app = FastAPI(
     title=api_settings.name,
@@ -67,9 +88,10 @@ app = FastAPI(
 
 ###############################################################################
 # Simple Dataset endpoints (e.g Cloud Optimized GeoTIFF)
+cog_prefix = global_prefix + "/cog"
 if not api_settings.disable_cog:
     cog = TilerFactory(
-        router_prefix="/cog",
+        router_prefix=cog_prefix,
         extensions=[
             cogValidateExtension(),
             cogViewerExtension(),
@@ -77,39 +99,41 @@ if not api_settings.disable_cog:
         ],
     )
 
-    app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
+    app.include_router(cog.router, prefix=cog_prefix, tags=["Cloud Optimized GeoTIFF"])
 
 
 ###############################################################################
 # STAC endpoints
+stac_prefix = global_prefix + "/stac"
 if not api_settings.disable_stac:
     stac = MultiBaseTilerFactory(
         reader=STACReader,
-        router_prefix="/stac",
+        router_prefix=stac_prefix,
         extensions=[
             stacViewerExtension(),
         ],
     )
 
     app.include_router(
-        stac.router, prefix="/stac", tags=["SpatioTemporal Asset Catalog"]
+        stac.router, prefix=stac_prefix, tags=["SpatioTemporal Asset Catalog"]
     )
 
 ###############################################################################
 # Mosaic endpoints
+mosaicjson_prefix = global_prefix + "/mosaicjson"
 if not api_settings.disable_mosaic:
-    mosaic = MosaicTilerFactory(router_prefix="/mosaicjson")
-    app.include_router(mosaic.router, prefix="/mosaicjson", tags=["MosaicJSON"])
+    mosaic = MosaicTilerFactory(router_prefix=mosaicjson_prefix)
+    app.include_router(mosaic.router, prefix=mosaicjson_prefix, tags=["MosaicJSON"])
 
 ###############################################################################
 # TileMatrixSets endpoints
 tms = TMSFactory()
-app.include_router(tms.router, tags=["Tiling Schemes"])
+app.include_router(tms.router, prefix=global_prefix, tags=["Tiling Schemes"])
 
 ###############################################################################
 # Algorithms endpoints
 algorithms = AlgorithmFactory()
-app.include_router(algorithms.router, tags=["Algorithms"])
+app.include_router(algorithms.router, prefix=global_prefix, tags=["Algorithms"])
 
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 add_exception_handlers(app, MOSAIC_STATUS_CODES)
@@ -139,7 +163,7 @@ app.add_middleware(
 app.add_middleware(
     CacheControlMiddleware,
     cachecontrol=api_settings.cachecontrol,
-    exclude_path={r"/healthz"},
+    exclude_path={global_prefix + r"/healthz"},
 )
 
 if api_settings.debug:
@@ -150,7 +174,10 @@ if api_settings.lower_case_query_parameters:
     app.add_middleware(LowerCaseQueryStringMiddleware)
 
 
-@app.get(
+router = APIRouter(prefix=global_prefix)
+
+
+@router.get(
     "/healthz",
     description="Health Check.",
     summary="Health Check.",
@@ -162,7 +189,7 @@ def ping():
     return {"ping": "pong!"}
 
 
-@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+@router.get("/", response_class=HTMLResponse, include_in_schema=False)
 def landing(request: Request):
     """TiTiler Landing page"""
     return templates.TemplateResponse(
@@ -170,3 +197,6 @@ def landing(request: Request):
         context={"request": request},
         media_type="text/html",
     )
+
+
+app.include_router(router)
