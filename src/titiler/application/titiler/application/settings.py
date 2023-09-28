@@ -12,6 +12,7 @@ class ApiSettings(BaseSettings):
     cors_allow_methods: str = "GET"
     cachecontrol: str = "public, max-age=3600"
     root_path: str = ""
+    path_prefix: str = ""
     debug: bool = False
 
     disable_cog: bool = False
