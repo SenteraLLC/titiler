@@ -10,7 +10,7 @@ from fastapi import HTTPException, Query
 from rasterio.crs import CRS
 from rio_tiler.colormap import cmap, parse_color
 from rio_tiler.errors import MissingAssets, MissingBands
-from rio_tiler.types import ColorMapType, RIOResampling
+from rio_tiler.types import ColorMapType, RIOResampling, WarpResampling
 from typing_extensions import Annotated
 
 ColorMapName = Enum(  # type: ignore
@@ -343,6 +343,13 @@ class DatasetParams(DefaultDependency):
         Query(
             alias="resampling",
             description="Resampling method.",
+        ),
+    ] = "nearest",
+    reproject_method: Annotated[
+        WarpResampling,
+        Query(
+            alias="reproject",
+            description="Reprojection method.",
         ),
     ] = "nearest"
 
