@@ -344,7 +344,7 @@ class DatasetParams(DefaultDependency):
             alias="resampling",
             description="Resampling method.",
         ),
-    ] = "nearest",
+    ] = "nearest"
     reproject_method: Annotated[
         WarpResampling,
         Query(
