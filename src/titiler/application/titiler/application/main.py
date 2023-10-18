@@ -4,7 +4,7 @@ import logging
 import os
 
 import jinja2
-from fastapi import APIRouter, FastAPI
+from fastapi import FastAPI
 from rio_tiler.io import STACReader
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
@@ -63,9 +63,6 @@ templates = Jinja2Templates(
 )  # type:ignore
 
 api_settings = ApiSettings()
-global_prefix = api_settings.path_prefix
-logger.debug(f"Root path: {api_settings.root_path}")
-logger.debug(f"Path prefix: {global_prefix}")
 
 app = FastAPI(
     title=api_settings.name,
@@ -87,10 +84,9 @@ app = FastAPI(
 
 ###############################################################################
 # Simple Dataset endpoints (e.g Cloud Optimized GeoTIFF)
-cog_prefix = global_prefix + "/cog"
 if not api_settings.disable_cog:
     cog = TilerFactory(
-        router_prefix=cog_prefix,
+        router_prefix="/cog",
         extensions=[
             cogValidateExtension(),
             cogViewerExtension(),
@@ -98,41 +94,39 @@ if not api_settings.disable_cog:
         ],
     )
 
-    app.include_router(cog.router, prefix=cog_prefix, tags=["Cloud Optimized GeoTIFF"])
+    app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
 
 
 ###############################################################################
 # STAC endpoints
-stac_prefix = global_prefix + "/stac"
 if not api_settings.disable_stac:
     stac = MultiBaseTilerFactory(
         reader=STACReader,
-        router_prefix=stac_prefix,
+        router_prefix="/stac",
         extensions=[
             stacViewerExtension(),
         ],
     )
 
     app.include_router(
-        stac.router, prefix=stac_prefix, tags=["SpatioTemporal Asset Catalog"]
+        stac.router, prefix="/stac", tags=["SpatioTemporal Asset Catalog"]
     )
 
 ###############################################################################
 # Mosaic endpoints
-mosaicjson_prefix = global_prefix + "/mosaicjson"
 if not api_settings.disable_mosaic:
-    mosaic = MosaicTilerFactory(router_prefix=mosaicjson_prefix)
-    app.include_router(mosaic.router, prefix=mosaicjson_prefix, tags=["MosaicJSON"])
+    mosaic = MosaicTilerFactory(router_prefix="/mosaicjson")
+    app.include_router(mosaic.router, prefix="/mosaicjson", tags=["MosaicJSON"])
 
 ###############################################################################
 # TileMatrixSets endpoints
 tms = TMSFactory()
-app.include_router(tms.router, prefix=global_prefix, tags=["Tiling Schemes"])
+app.include_router(tms.router, tags=["Tiling Schemes"])
 
 ###############################################################################
 # Algorithms endpoints
 algorithms = AlgorithmFactory()
-app.include_router(algorithms.router, prefix=global_prefix, tags=["Algorithms"])
+app.include_router(algorithms.router, tags=["Algorithms"])
 
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 add_exception_handlers(app, MOSAIC_STATUS_CODES)
@@ -162,7 +156,7 @@ app.add_middleware(
 app.add_middleware(
     CacheControlMiddleware,
     cachecontrol=api_settings.cachecontrol,
-    exclude_path={global_prefix + r"/healthz"},
+    exclude_path={r"/healthz"},
 )
 
 if api_settings.debug:
@@ -173,10 +167,7 @@ if api_settings.lower_case_query_parameters:
     app.add_middleware(LowerCaseQueryStringMiddleware)
 
 
-router = APIRouter(prefix=global_prefix)
-
-
-@router.get(
+@app.get(
     "/healthz",
     description="Health Check.",
     summary="Health Check.",
@@ -188,7 +179,7 @@ def ping():
     return {"ping": "pong!"}
 
 
-@router.get("/", response_class=HTMLResponse, include_in_schema=False)
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
 def landing(request: Request):
     """TiTiler landing page."""
     data = {
@@ -257,6 +248,3 @@ def landing(request: Request):
             "urlparams": str(request.url.query),
         },
     )
-
-
-app.include_router(router)
