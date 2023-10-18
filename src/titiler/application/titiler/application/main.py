@@ -1,6 +1,7 @@
 """titiler app."""
 
 import logging
+import os
 
 import jinja2
 from fastapi import FastAPI
@@ -35,15 +36,31 @@ from titiler.extensions import (
 from titiler.mosaic.errors import MOSAIC_STATUS_CODES
 from titiler.mosaic.factory import MosaicTilerFactory
 
+LEVELS = {
+    "debug": logging.DEBUG,
+    "info": logging.INFO,
+    "warning": logging.WARNING,
+    "error": logging.ERROR,
+    "critical": logging.CRITICAL,
+}
+# Remove any AWS-injected logger handlers to fix Lambda logging to CloudWatch
+# https://stackoverflow.com/a/45624044
+base = logging.getLogger()
+if base.handlers:
+    for handler in base.handlers:
+        base.removeHandler(handler)
+logging.basicConfig(level=LEVELS.get(os.environ.get("LOGLEVEL", "info")))
 logging.getLogger("botocore.credentials").disabled = True
 logging.getLogger("botocore.utils").disabled = True
 logging.getLogger("rio-tiler").setLevel(logging.ERROR)
+
+logger = logging.getLogger(__name__)
+logger.info("TiTiler")
 
 templates = Jinja2Templates(
     directory="",
     loader=jinja2.ChoiceLoader([jinja2.PackageLoader(__package__, "templates")]),
 )  # type:ignore
-
 
 api_settings = ApiSettings()
 

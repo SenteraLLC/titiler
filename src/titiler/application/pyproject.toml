@@ -29,9 +29,11 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "titiler.core==0.14.1",
-    "titiler.extensions[cogeo,stac]==0.14.1",
-    "titiler.mosaic==0.14.1",
+    # Configured for volume-mount path of Lambda Dockerfile. For local
+    # development, update accordingly for your local filesystem path:
+    "titiler.core @ file:///titiler/src/titiler/core",
+    "titiler.extensions[cogeo,stac] @ file:///titiler/src/titiler/extensions",
+    "titiler.mosaic @ file:///titiler/src/titiler/mosaic",
     "starlette-cramjam>=0.3,<0.4",
     "pydantic-settings~=2.0",
 ]
