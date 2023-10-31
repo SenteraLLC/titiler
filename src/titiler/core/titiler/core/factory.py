@@ -1,6 +1,8 @@
 """TiTiler Router factories."""
 
 import abc
+import json
+from base64 import b64decode
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Type, Union
 from urllib.parse import urlencode
@@ -248,6 +250,11 @@ class BaseTilerFactory(metaclass=abc.ABCMeta):
                 # https://github.com/tiangolo/fastapi/blob/58ab733f19846b4875c5b79bfb1f4d1cb7f4823f/fastapi/applications.py#L337-L360
                 # https://github.com/tiangolo/fastapi/blob/58ab733f19846b4875c5b79bfb1f4d1cb7f4823f/fastapi/routing.py#L677-L678
                 route.dependencies.extend(dependencies)  # type: ignore
+
+
+def get_feature(aoi: str) -> Feature:
+    """Base64 encoded GeoJSON Feature."""
+    return json.loads(b64decode(aoi))
 
 
 @dataclass
@@ -525,6 +532,10 @@ class TilerFactory(BaseTilerFactory):
                     description="Row (Y) index of the tile on the selected TileMatrix. It cannot exceed the MatrixWidth-1 for the selected TileMatrix.",
                 ),
             ],
+            aoi: Annotated[
+                Union[str, None],
+                "Area of interest to crop the tile.",
+            ] = None,
             tileMatrixSetId: Annotated[
                 Literal[tuple(self.supported_tms.list())],
                 f"Identifier selecting one of the TileMatrixSetId supported (default: '{self.default_tms}')",
@@ -549,6 +560,7 @@ class TilerFactory(BaseTilerFactory):
             env=Depends(self.environment_dependency),
         ):
             """Create map tile from a dataset."""
+            feature = get_feature(aoi) if aoi else None
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
                 with self.reader(src_path, tms=tms, **reader_params) as src_dst:
@@ -557,6 +569,7 @@ class TilerFactory(BaseTilerFactory):
                         y,
                         z,
                         tilesize=scale * 256,
+                        aoi=feature,
                         **tile_params,
                         **layer_params,
                         **dataset_params,

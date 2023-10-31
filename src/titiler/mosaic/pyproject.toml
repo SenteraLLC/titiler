@@ -29,7 +29,9 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "titiler.core==0.15.2",
+    # Configured for volume-mount path of Lambda Dockerfile. For local
+    # development, update accordingly for your local filesystem path:
+    "titiler.core @ file:///titiler/src/titiler/core",
     "cogeo-mosaic>=7.0,<8.0",
 ]
 
