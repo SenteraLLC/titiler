@@ -31,10 +31,10 @@ version="0.11.6"
 dependencies = [
     # Configured for volume-mount path of Lambda Dockerfile. For local
     # development, update accordingly for your local filesystem path:
-    "titiler.core @ file:///titiler/src/titiler/core",
-    "titiler.extensions @ file:///titiler/src/titiler/extensions",
-    "titiler.mosaic @ file:///titiler/src/titiler/mosaic",
-    "titiler.application @ file:///titiler/src/titiler/application",
+    "titiler.core @ file:///tmp/titiler/core",
+    "titiler.extensions @ file:///tmp/titiler/extensions",
+    "titiler.mosaic @ file:///tmp/titiler/mosaic",
+    "titiler.application @ file:///tmp/titiler/application",
 ]
 
 [project.optional-dependencies]

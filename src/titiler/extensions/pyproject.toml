@@ -31,7 +31,7 @@ dynamic = ["version"]
 dependencies = [
     # Configured for volume-mount path of Lambda Dockerfile. For local
     # development, update accordingly for your local filesystem path:
-    "titiler.core @ file:///titiler/src/titiler/core",
+    "titiler.core @ file:///tmp/titiler/core",
 ]
 
 [project.optional-dependencies]
