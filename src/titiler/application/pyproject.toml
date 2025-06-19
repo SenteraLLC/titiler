@@ -31,9 +31,9 @@ dynamic = ["version"]
 dependencies = [
     # Configured for volume-mount path of Lambda Dockerfile. For local
     # development, update accordingly for your local filesystem path:
-    "titiler.core @ file:///tmp/titiler/core",
-    "titiler.extensions[cogeo,stac] @ file:///tmp/titiler/extensions",
-    "titiler.mosaic @ file:///tmp/titiler/mosaic",
+    "titiler.core @ file:///titiler/src//titiler/core",
+    "titiler.extensions[cogeo,stac] @ file:///titiler/src//titiler/extensions",
+    "titiler.mosaic @ file:///titiler/src//titiler/mosaic",
     "starlette-cramjam>=0.3,<0.4",
     "python-dotenv",
 ]

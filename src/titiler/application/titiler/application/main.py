@@ -167,8 +167,6 @@ app.add_middleware(
     exclude_path={global_prefix + r"/healthz"},
 )
 
-app.add_middleware(BlockVRTMiddleware)
-
 if api_settings.debug:
     app.add_middleware(LoggerMiddleware, headers=True, querystrings=True)
     app.add_middleware(TotalTimeMiddleware)
@@ -176,6 +174,7 @@ if api_settings.debug:
 if api_settings.lower_case_query_parameters:
     app.add_middleware(LowerCaseQueryStringMiddleware)
 
+app.add_middleware(BlockVRTMiddleware)
 
 router = APIRouter(prefix=global_prefix)
 

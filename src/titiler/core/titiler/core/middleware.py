@@ -174,6 +174,7 @@ class BlockVRTMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         """Handle call."""
         # Check path for VRT
+        logger.info(f"Processing request: {request.url}")
         if ".vrt" in request.scope["path"].lower():
             return Response(
                 content="VRT files are not supported.",
@@ -188,16 +189,19 @@ class BlockVRTMiddleware(BaseHTTPMiddleware):
                 status_code=403,
             )
 
-        try:
-            with rasterio.open(url_param, sharing=False) as src:
-                if src.driver == "VRT":
-                    return Response(
-                        content="VRT files are not supported in URL parameters.",
-                        status_code=403,
-                    )
-        except Exception:
-            # If rasterio fails to open the file, we assume it's not a VRT
-            pass
+        # TODO: check if we need this.
+        if url_param.startswith(("http://", "https://", "s3://", "gs://", "azure://")):
+
+            try:
+                with rasterio.open(url_param, sharing=False) as src:
+                    if src.driver == "VRT":
+                        return Response(
+                            content="VRT files are not supported in URL parameters.",
+                            status_code=403,
+                        )
+            except Exception:
+                # If rasterio fails to open the file, we assume it's not a VRT
+                pass
 
         # Continue with the request if no VRT detected
         response = await call_next(request)
