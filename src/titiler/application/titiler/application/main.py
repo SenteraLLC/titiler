@@ -25,6 +25,7 @@ from titiler.core.middleware import (
     LoggerMiddleware,
     LowerCaseQueryStringMiddleware,
     TotalTimeMiddleware,
+    BlockVRTMiddleware,
 )
 from titiler.extensions import (
     cogValidateExtension,
@@ -165,6 +166,8 @@ app.add_middleware(
     cachecontrol=api_settings.cachecontrol,
     exclude_path={global_prefix + r"/healthz"},
 )
+
+app.add_middleware(BlockVRTMiddleware)
 
 if api_settings.debug:
     app.add_middleware(LoggerMiddleware, headers=True, querystrings=True)

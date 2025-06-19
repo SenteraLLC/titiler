@@ -6,10 +6,12 @@ import time
 from typing import Optional, Set
 
 from fastapi.logger import logger
+import rasterio
 from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
-
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 class CacheControlMiddleware:
     """MiddleWare to add CacheControl in response headers."""
@@ -166,3 +168,37 @@ class LowerCaseQueryStringMiddleware:
             request.scope["query_string"] = query_string.encode(DECODE_FORMAT)
 
         await self.app(scope, receive, send)
+
+class BlockVRTMiddleware(BaseHTTPMiddleware):
+    """Middleware to block requests with vrt in the path."""
+    async def dispatch(self, request: Request, call_next):
+        """Handle call."""
+        # Check path for VRT
+        if ".vrt" in request.scope["path"].lower():
+            return Response(
+                content="VRT files are not supported.",
+                status_code=403,
+            )
+
+        # Check URL parameter for VRT
+        url_param = request.query_params.get("url", "").lower()
+        if ".vrt" in url_param:
+            return Response(
+                content="VRT files are not supported in URL parameters.",
+                status_code=403,
+            )
+
+        try:
+            with rasterio.open(url_param, sharing=False) as src:
+                if src.driver == "VRT":
+                    return Response(
+                        content="VRT files are not supported in URL parameters.",
+                        status_code=403,
+                    )
+        except Exception:
+            # If rasterio fails to open the file, we assume it's not a VRT
+            pass
+
+        # Continue with the request if no VRT detected
+        response = await call_next(request)
+        return response
