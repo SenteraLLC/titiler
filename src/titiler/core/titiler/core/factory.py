@@ -828,10 +828,6 @@ class TilerFactory(BaseFactory):
                     description="Row (Y) index of the tile on the selected TileMatrix. It cannot exceed the MatrixWidth-1 for the selected TileMatrix.",
                 ),
             ],
-            aoi: Annotated[
-                Union[str, None],
-                "Area of interest to crop the tile.",
-            ] = None,
             tileMatrixSetId: Annotated[
                 Literal[tuple(self.supported_tms.list())],
                 Path(
@@ -849,6 +845,10 @@ class TilerFactory(BaseFactory):
                 Field(
                     description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg)."
                 ),
+            ] = None,
+            aoi: Annotated[
+                Union[str, None],
+                Query(description="Area of interest to crop the tile."),
             ] = None,
             src_path=Depends(self.path_dependency),
             reader_params=Depends(self.reader_dependency),
