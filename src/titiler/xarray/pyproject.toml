@@ -30,8 +30,10 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "titiler.core==0.22.4",
-    "rio-tiler>=7.6.1,<8.0",
+    # Configured for volume-mount path of Lambda Dockerfile. For local
+    # development, update accordingly for your local filesystem path:
+    "titiler.core @ file:///titiler/src/titiler/core",
+    "rio-tiler@https://github.com/SenteraLLC/rio-tiler/archive/refs/heads/7.8.1-sentera-changes-dev.tar.gz",
     "xarray",
     "rioxarray",
 ]
