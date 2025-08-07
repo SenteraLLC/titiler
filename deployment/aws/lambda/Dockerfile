@@ -78,11 +78,14 @@ RUN pip install \
 WORKDIR /asset
 RUN find . -type f -name '*.pyc' | while read f; do n=$(echo $f | sed 's/__pycache__\///' | sed 's/.cpython-[0-9]*//'); cp $f $n; done;
 RUN find . -type d -a -name '__pycache__' -print0 | xargs -0 rm -rf
-# RUN find . -type f -a -name '*.py' -print0 | xargs -0 rm -f
 RUN find . -type d -a -name 'tests' -print0 | xargs -0 rm -rf
 RUN rm -rdf numpy/doc/ boto3* botocore* bin geos_license Misc
 
 # Copy bits into /asset
+# NOTE: I *also* found that a couple Lambda environment variables need
+#       to be set for all this to work:
+#       - GDAL_DATA : "/var/task/gdal"
+#       - PROJ_DATA : "/var/task/proj"
 WORKDIR /asset
 RUN mkdir -p /asset/proj
 RUN cp -r /usr/share/proj/* /asset/proj/
