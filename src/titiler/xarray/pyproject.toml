@@ -33,7 +33,7 @@ dependencies = [
     # Configured for volume-mount path of Lambda Dockerfile. For local
     # development, update accordingly for your local filesystem path:
     "titiler.core @ file:///titiler/src/titiler/core",
-    "rio-tiler@https://github.com/SenteraLLC/rio-tiler/archive/refs/heads/7.8.1-sentera-changes-dev.tar.gz",
+    "rio-tiler@https://github.com/SenteraLLC/rio-tiler/archive/refs/tags/7.8.1-0.tar.gz",
     "xarray",
     "rioxarray",
 ]
