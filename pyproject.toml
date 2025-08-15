@@ -31,11 +31,13 @@ classifiers = [
 ]
 version="0.22.4"
 dependencies = [
-    "titiler.core==0.22.4",
-    "titiler.xarray==0.22.4",
-    "titiler.extensions==0.22.4",
-    "titiler.mosaic==0.22.4",
-    "titiler.application==0.22.4",
+    # Configured for volume-mount path of Lambda Dockerfile. For local
+    # development, update accordingly for your local filesystem path:
+    "titiler.core @ file:///titiler/src/titiler/core",
+    "titiler.xarray @ file:///titiler/src/titiler/xarray",
+    "titiler.extensions @ file:///titiler/src/titiler/extensions",
+    "titiler.mosaic @ file:///titiler/src/titiler/mosaic",
+    "titiler.application @ file:///titiler/src/titiler/application",
 ]
 
 [project.urls]

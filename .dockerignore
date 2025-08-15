@@ -8,3 +8,4 @@ deployment/*
 docs/*
 
 deployment/aws/**
+!deployment/aws/lambda/handler.py

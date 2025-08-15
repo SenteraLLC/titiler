@@ -1,6 +1,8 @@
 """TiTiler Router factories."""
 
 import abc
+import json
+from base64 import b64decode
 from typing import (
     Any,
     Callable,
@@ -224,6 +226,11 @@ class BaseFactory(metaclass=abc.ABCMeta):
                 # https://github.com/tiangolo/fastapi/blob/58ab733f19846b4875c5b79bfb1f4d1cb7f4823f/fastapi/applications.py#L337-L360
                 # https://github.com/tiangolo/fastapi/blob/58ab733f19846b4875c5b79bfb1f4d1cb7f4823f/fastapi/routing.py#L677-L678
                 route.dependencies.extend(dependencies)  # type: ignore
+
+
+def get_feature(aoi: str) -> Feature:
+    """Base64 encoded GeoJSON Feature."""
+    return json.loads(b64decode(aoi))
 
 
 @define(kw_only=True)
@@ -839,6 +846,10 @@ class TilerFactory(BaseFactory):
                     description="Default will be automatically defined if the output image needs a mask (png) or not (jpeg)."
                 ),
             ] = None,
+            aoi: Annotated[
+                Union[str, None],
+                Query(description="Area of interest to crop the tile."),
+            ] = None,
             src_path=Depends(self.path_dependency),
             reader_params=Depends(self.reader_dependency),
             tile_params=Depends(self.tile_dependency),
@@ -850,6 +861,7 @@ class TilerFactory(BaseFactory):
             env=Depends(self.environment_dependency),
         ):
             """Create map tile from a dataset."""
+            feature = get_feature(aoi) if aoi else None
             tms = self.supported_tms.get(tileMatrixSetId)
             with rasterio.Env(**env):
                 with self.reader(
@@ -860,6 +872,7 @@ class TilerFactory(BaseFactory):
                         y,
                         z,
                         tilesize=scale * 256,
+                        aoi=feature,
                         **tile_params.as_dict(),
                         **layer_params.as_dict(),
                         **dataset_params.as_dict(),
